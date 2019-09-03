@@ -1,0 +1,87 @@
+---
+title: "Argentina's historical GDP trends"
+author: "Alejandra Gerosa"
+date: "9/2/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+```
+
+## Load the data
+
+
+
+```{r data}
+data <- read_xlsx("data/mpd2018.xlsx", sheet = 2)
+
+
+
+```
+
+## Add ranking
+
+```{r ranking}
+gdp_with_rankings <- data %>%
+  group_by(year) %>%
+  mutate(rank = row_number(desc(rgdpnapc)),
+         perc_rank = percent_rank(desc(rgdpnapc)),
+         rank_better_ties = rank(desc(rgdpnapc), ties.method = "min", na.last = "keep"))
+```
+
+## Reproduce original plot
+
+```{r plot_orig}
+
+p <- gdp_with_rankings %>%
+  filter(countrycode %in% c("ARG", "AUS"),
+         year > 1820) %>% 
+  ggplot(aes(year, rank, color = country))
+
+p + geom_line()
+
+
+```
+Still not quite the same, but similar? Sorta supports the point that we were comparable to Australia and everything went wrong in 1950.
+
+Now, the thing that struck me the most from what the other guy said is that we are comparing our absolute position on a ranking that started including a lot of new contenders in 1950.
+
+```{r count_countries}
+p <- gdp_with_rankings %>%
+  group_by(year) %>% 
+  summarise(count = sum(!is.na(rgdpnapc))) %>% 
+  filter(year > 1820) %>%
+  ggplot(aes(year, count))
+
+p + geom_line()
+
+```
+
+```{r perc_rank_plot}
+p <- gdp_with_rankings %>%
+  filter(countrycode %in% c("ARG", "AUS"),
+         year > 1820) %>% 
+  ggplot(aes(year, perc_rank, color = country))
+
+p + geom_line()
+
+
+```
+
+```{r other_plots}
+comparisons <- c("ARG", "AUS", "USA", "VEN", "MEX", "CHL", "PER", "BRA", "IRL", "ITA", "ESP", "PRY")
+
+gdp_plot <- gdp_with_rankings %>%
+  filter(year >= 1850, countrycode %in% comparisons) %>% 
+  ggplot(aes(year, rgdpnapc, color = country))
+
+gdp_plot + geom_line() +
+  facet_wrap(~country) + guides(color = FALSE) +
+  geom_vline(xintercept = 1950, color = "pink") +
+  geom_vline(xintercept = 1975, color = "pink")
+  
+
+```
