@@ -1,0 +1,45 @@
+---
+title: "Other Plots"
+author: "Alejandra Gerosa"
+date: "9/3/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+```
+
+## R Markdown
+
+```{r drafts}
+data <- read_xlsx("data/mpd2018.xlsx", sheet = 2)
+
+gdp_with_rankings <- data %>%
+  group_by(year) %>%
+  mutate(rank = row_number(desc(rgdpnapc)),
+         perc_rank = percent_rank(desc(rgdpnapc)),
+         rank_better_ties = rank(desc(rgdpnapc), ties.method = "min", na.last = "keep"))
+
+rank_plot <- gdp_with_rankings %>%
+  filter(year >= 1850, countrycode %in% comparisons) %>%
+  ggplot(aes(year, rank, color = country))
+
+rank_plot + geom_line() +
+  facet_wrap(~country) + guides(color = FALSE) +
+  geom_vline(xintercept = 1950, color = "pink") +
+  geom_vline(xintercept = 1975, color = "pink")
+
+perc_rank_plot <- gdp_with_rankings %>%
+  filter(year >= 1850, countrycode %in% comparisons) %>%
+  ggplot(aes(year, perc_rank, color = country))
+
+perc_rank_plot + geom_line() +
+  facet_wrap(~country) + guides(color = FALSE) +
+  geom_vline(xintercept = 1950, color = "pink") +
+  geom_vline(xintercept = 1975, color = "pink")
+
+
+```
+
