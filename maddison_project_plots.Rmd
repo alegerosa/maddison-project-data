@@ -82,6 +82,26 @@ gdp_plot + geom_line() +
   facet_wrap(~country) + guides(color = FALSE) +
   geom_vline(xintercept = 1950, color = "pink") +
   geom_vline(xintercept = 1975, color = "pink")
+
+# rank_plot <- gdp_with_rankings %>%
+#   filter(year >= 1850, countrycode %in% comparisons) %>% 
+#   ggplot(aes(year, rank, color = country))
+# 
+# rank_plot + geom_line() +
+#   facet_wrap(~country) + guides(color = FALSE) +
+#   geom_vline(xintercept = 1950, color = "pink") +
+#   geom_vline(xintercept = 1975, color = "pink")
+# 
+# perc_rank_plot <- gdp_with_rankings %>%
+#   filter(year >= 1850, countrycode %in% comparisons) %>% 
+#   ggplot(aes(year, perc_rank, color = country))
+# 
+# perc_rank_plot + geom_line() +
+#   facet_wrap(~country) + guides(color = FALSE) +
+#   geom_vline(xintercept = 1950, color = "pink") +
+#   geom_vline(xintercept = 1975, color = "pink")
+
+
   
 
 ```
