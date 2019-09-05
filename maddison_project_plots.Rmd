@@ -93,3 +93,35 @@ gdp_plot + geom_line() +
   
 
 ```
+
+```{r plots_cgd}
+
+gdp_with_cgd_rankings <- data %>%
+  group_by(year) %>%
+  mutate(rank = row_number(desc(cgdppc)),
+         perc_rank = percent_rank(cgdppc),
+         percentile = perc_rank * 100,
+         rank_better_ties = rank(desc(cgdppc), ties.method = "min", na.last = "keep"))
+
+cgd <- gdp_with_cgd_rankings %>%
+  filter(countrycode %in% c("ARG", "AUS"),
+         year >= 1850) %>% 
+  ggplot(aes(x = year, rank, color = country)) 
+
+cgd + geom_line() +
+  scale_y_reverse() +
+  geom_smooth(se = FALSE)
+
+perc_cgd <- gdp_with_cgd_rankings %>%
+  filter(countrycode %in% c("ARG", "AUS"),
+         year >= 1850) %>% 
+  ggplot(aes(year, percentile, color = country))
+
+perc_cgd + geom_line() +
+  scale_y_continuous(labels = scales::ordinal) +
+  coord_cartesian(ylim=c(0,100)) +
+  geom_smooth(se = FALSE)
+
+
+
+```
