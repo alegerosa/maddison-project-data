@@ -9,6 +9,11 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(readxl)
+library(cowplot)
+
+caption <- "En base a datos de Maddison Project Database. Datos y código disponibles en github.com/alegerosa/maddison-project-data"
+  
+  
 ```
 
 ## Load the data
@@ -27,10 +32,10 @@ data <- read_xlsx("data/mpd2018.xlsx", sheet = 2)
 ```{r ranking}
 gdp_with_rankings <- data %>%
   group_by(year) %>%
-  mutate(rank = row_number(desc(rgdpnapc)),
-         perc_rank = percent_rank(rgdpnapc),
+  mutate(rank = row_number(desc(cgdppc)),
+         perc_rank = percent_rank(cgdppc),
          percentile = perc_rank * 100,
-         rank_better_ties = rank(desc(rgdpnapc), ties.method = "min", na.last = "keep"))
+         rank_better_ties = rank(desc(cgdppc), ties.method = "min", na.last = "keep"))
 ```
 
 ## Reproduce original plot
@@ -40,47 +45,68 @@ gdp_with_rankings <- data %>%
 p <- gdp_with_rankings %>%
   filter(countrycode %in% c("ARG", "AUS"),
          year >= 1850) %>% 
-  ggplot(aes(x = year, rank, color = country))
-
-p + geom_line() +
-  scale_y_reverse()
-
+  ggplot(aes(x = year, rank, color = country)) +
+  geom_line() +
+  scale_y_reverse() +
+  geom_text(data = filter(gdp_with_rankings, year == "2016" & countrycode %in% c("ARG", "AUS")), aes(label = country, colour = country, x = Inf, y = rank), hjust = 1) +
+  guides(color = FALSE) +
+  labs(x = NULL,
+       y = "Ranking",
+      title = "El gráfico original",
+      subtitle = "Compara puestos absolutos (sin importar cuántos países haya cada año)",
+      caption = caption) +
+  geom_smooth(se = FALSE)
+p
 
 ```
-Still not quite the same, but similar? Sorta supports the point that we were comparable to Australia and everything went wrong in 1950.
 
-Now, the thing that struck me the most from what the other guy said is that we are comparing our absolute position on a ranking that started including a lot of new contenders in 1950.
 
 ```{r count_countries}
-p <- gdp_with_rankings %>%
+counts <- gdp_with_rankings %>%
   group_by(year) %>% 
   summarise(count = sum(!is.na(rgdpnapc))) %>% 
   filter(year >= 1850) %>%
   ggplot(aes(year, count))
 
-p + geom_line()
+counts + geom_line()
 
 ```
 
 ```{r perc_rank_plot}
-p <- gdp_with_rankings %>%
+q <- gdp_with_rankings %>%
   filter(countrycode %in% c("ARG", "AUS"),
          year >= 1850) %>% 
-  ggplot(aes(year, percentile, color = country))
-
-p + geom_line() +
+  ggplot(aes(year, percentile, color = country)) +
+  geom_line() +
   scale_y_continuous(labels = scales::ordinal) +
-  coord_cartesian(ylim=c(0,100))
+  coord_cartesian(ylim=c(0,100)) +
+  geom_text(data = filter(gdp_with_rankings, year == "2016" & countrycode %in% c("ARG", "AUS")), aes(label = country, colour = country, x = Inf, y = percentile), hjust = 1) +
+  guides(color = FALSE) +
+  labs(x = NULL,
+       y = "Percentil",
+      title = "Un gráfico algo más razonable",
+      subtitle = "Compara puestos relativos (percentiles)",
+      caption = caption) +
+  geom_smooth(se = FALSE)
+
+q
 
 
 ```
+
+```{r together}
+plot_grid(p, q)
+
+
+```
+
 
 ```{r other_plots}
 comparisons <- c("ARG", "AUS", "USA", "VEN", "MEX", "CHL", "PER", "BRA", "IRL", "ITA", "ESP", "PRY")
 
 gdp_plot <- gdp_with_rankings %>%
   filter(year >= 1850, countrycode %in% comparisons) %>% 
-  ggplot(aes(year, rgdpnapc, color = country))
+  ggplot(aes(year, cgdppc, color = country))
 
 gdp_plot + geom_line() +
   facet_wrap(~country) + guides(color = FALSE) +
@@ -94,30 +120,30 @@ gdp_plot + geom_line() +
 
 ```
 
-```{r plots_cgd}
+```{r plots_rgd}
 
-gdp_with_cgd_rankings <- data %>%
+gdp_with_rgd_rankings <- data %>%
   group_by(year) %>%
-  mutate(rank = row_number(desc(cgdppc)),
-         perc_rank = percent_rank(cgdppc),
+  mutate(rank = row_number(desc(rgdpnapc)),
+         perc_rank = percent_rank(rgdpnapc),
          percentile = perc_rank * 100,
-         rank_better_ties = rank(desc(cgdppc), ties.method = "min", na.last = "keep"))
+         rank_better_ties = rank(desc(rgdpnapc), ties.method = "min", na.last = "keep"))
 
-cgd <- gdp_with_cgd_rankings %>%
+rgd <- gdp_with_rgd_rankings %>%
   filter(countrycode %in% c("ARG", "AUS"),
          year >= 1850) %>% 
   ggplot(aes(x = year, rank, color = country)) 
 
-cgd + geom_line() +
+rgd + geom_line() +
   scale_y_reverse() +
   geom_smooth(se = FALSE)
 
-perc_cgd <- gdp_with_cgd_rankings %>%
+perc_rgd <- gdp_with_rgd_rankings %>%
   filter(countrycode %in% c("ARG", "AUS"),
          year >= 1850) %>% 
   ggplot(aes(year, percentile, color = country))
 
-perc_cgd + geom_line() +
+perc_rgd + geom_line() +
   scale_y_continuous(labels = scales::ordinal) +
   coord_cartesian(ylim=c(0,100)) +
   geom_smooth(se = FALSE)
