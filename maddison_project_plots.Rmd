@@ -54,7 +54,7 @@ p <- gdp_with_rankings %>%
        y = "Ranking",
       title = "El gráfico original",
       subtitle = "Compara puestos absolutos (sin importar cuántos países haya cada año)",
-      caption = caption) +
+      caption = " ") +
   geom_smooth(se = FALSE)
 p
 
@@ -95,9 +95,9 @@ q
 ```
 
 ```{r together}
-plot_grid(p, q)
+graficos <- plot_grid(p, q)
 
-
+ggsave("graficos.jpg", graficos, width = 15, height = 5 )
 ```
 
 
