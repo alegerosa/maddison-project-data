@@ -97,7 +97,7 @@ q
 ```{r together}
 graficos <- plot_grid(p, q)
 
-ggsave("graficos.jpg", graficos, width = 11, height = 4 )
+ggsave("graficos.jpg", graficos, width = 12, height = 4 )
 ```
 
 
