@@ -53,7 +53,7 @@ p <- gdp_with_rankings %>%
   labs(x = NULL,
        y = "Ranking",
       title = "El gráfico original",
-      subtitle = "Compara puestos absolutos (sin importar cuántos países)",
+      subtitle = "Compara puestos absolutos (sin importar cuántos países haya cada año)",
       caption = " ") +
   geom_smooth(se = FALSE)
 p
